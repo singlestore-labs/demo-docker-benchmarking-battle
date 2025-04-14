@@ -1,0 +1,8 @@
+{
+  "arrowParens": "always",
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "printWidth": 128,
+  "quoteProps": "consistent",
+  "singleAttributePerLine": true,
+  "trailingComma": "all"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@repo/types",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/schemas": "*",
+    "@repo/typescript-config": "*"
+  }
+}
