@@ -1,0 +1,26 @@
+{
+  "name": "@repo/postgres",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "push": "drizzle-kit push",
+    "studio": "drizzle-kit studio",
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.39.3",
+    "drizzle-zod": "^0.7.1",
+    "pg": "^8.14.1"
+  },
+  "devDependencies": {
+    "@repo/errors": "*",
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@repo/utils": "*",
+    "@types/pg": "^8.11.12",
+    "drizzle-kit": "^0.30.6"
+  }
+}

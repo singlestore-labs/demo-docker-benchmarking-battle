@@ -1,5 +1,5 @@
 {
-  "name": "@repo/db",
+  "name": "@repo/mysql",
   "type": "module",
   "private": true,
   "scripts": {
@@ -10,20 +10,16 @@
     "lint": "eslint .",
     "check-types": "tsc --noEmit"
   },
-  "peerDependencies": {
-    "drizzle-orm": "^0.39.3"
-  },
   "dependencies": {
-    "mysql2": "^3.12.0",
-    "next": "14.2.28"
+    "drizzle-orm": "^0.39.3",
+    "drizzle-zod": "^0.7.1",
+    "mysql2": "^3.12.0"
   },
   "devDependencies": {
     "@repo/errors": "*",
     "@repo/eslint-config": "*",
-    "@repo/schemas": "*",
-    "@repo/types": "*",
     "@repo/typescript-config": "*",
     "@repo/utils": "*",
-    "drizzle-kit": "^0.19.1"
+    "drizzle-kit": "^0.30.6"
   }
 }

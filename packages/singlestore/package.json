@@ -1,0 +1,25 @@
+{
+  "name": "@repo/singlestore",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "push": "drizzle-kit push",
+    "studio": "drizzle-kit studio",
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.39.3",
+    "drizzle-zod": "^0.7.1",
+    "mysql2": "^3.12.0"
+  },
+  "devDependencies": {
+    "@repo/errors": "*",
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@repo/utils": "*",
+    "drizzle-kit": "^0.30.6"
+  }
+}

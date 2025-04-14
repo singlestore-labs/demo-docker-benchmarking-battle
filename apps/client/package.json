@@ -26,8 +26,6 @@
   "devDependencies": {
     "@repo/errors": "*",
     "@repo/eslint-config": "*",
-    "@repo/schemas": "*",
-    "@repo/types": "*",
     "@repo/typescript-config": "*",
     "@repo/utils": "*",
     "@types/node": "^20",

@@ -6,12 +6,12 @@
     "lint": "eslint .",
     "check-types": "tsc --noEmit"
   },
-  "peerDependencies": {
-    "zod": "^3.24.2"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@repo/eslint-config": "*",
-    "@repo/schemas": "*",
+    "@repo/mysql": "*",
+    "@repo/postgres": "*",
+    "@repo/singlestore": "*",
     "@repo/typescript-config": "*"
   }
 }
