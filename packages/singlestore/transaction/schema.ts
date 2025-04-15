@@ -1,20 +1,18 @@
-import { accountId } from "@repo/singlestore/account/schema";
-import { uid } from "@repo/utils/uid";
-import { decimal, singlestoreEnum, singlestoreTable, timestamp, varchar } from "drizzle-orm/singlestore-core";
+import { bigint, decimal, singlestoreEnum, singlestoreTable, timestamp } from "drizzle-orm/singlestore-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const transactionsTable = singlestoreTable("transactions", {
-  id: varchar({ length: 255 }).$default(uid).primaryKey(),
-  accountIdFrom: accountId.notNull(),
-  accountIdTo: accountId.notNull(),
+  id: bigint({ mode: "number" }).autoincrement().primaryKey(),
+  accountIdFrom: bigint("account_id_from", { mode: "number" }),
+  accountIdTo: bigint("account_id_to", { mode: "number" }),
   amount: decimal({ precision: 18, scale: 2 }),
-  currency: singlestoreEnum(["usd"]),
+  currency: singlestoreEnum(["USD"]),
   type: singlestoreEnum(["transfer", "payment", "withdrawal", "deposit"]),
   status: singlestoreEnum(["success", "failed", "pending"]),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const transactionId = varchar("transaction_id", { length: 255 });
+export const transactionId = bigint("transaction_id", { mode: "number" });
 
 export const transactionRecordSchema = createSelectSchema(transactionsTable);
 export const transactionValuesSchema = createInsertSchema(transactionsTable);

@@ -1,0 +1,26 @@
+{
+  "name": "data-generator",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "generate:start": "dotenv -- tsx ./generate.ts",
+    "load:start": "dotenv -- tsx ./load.ts",
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/mysql": "*",
+    "@repo/postgres": "*",
+    "@repo/singlestore": "*",
+    "@repo/types": "*",
+    "@repo/typescript-config": "*",
+    "@repo/utils": "*",
+    "dotenv-cli": "^8.0.0",
+    "tsx": "^4.19.3"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^9.7.0",
+    "csv-parse": "^5.6.0"
+  }
+}

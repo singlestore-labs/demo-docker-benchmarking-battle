@@ -1,18 +1,17 @@
 import { userId } from "@repo/singlestore/user/schema";
-import { uid } from "@repo/utils/uid";
-import { decimal, singlestoreEnum, singlestoreTable, timestamp, varchar } from "drizzle-orm/singlestore-core";
+import { bigint, decimal, singlestoreEnum, singlestoreTable, timestamp } from "drizzle-orm/singlestore-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const accountsTable = singlestoreTable("accounts", {
-  id: varchar({ length: 255 }).$default(uid).primaryKey(),
+  id: bigint({ mode: "number" }).autoincrement().primaryKey(),
   userId: userId.notNull(),
   balance: decimal({ precision: 18, scale: 2 }),
-  currency: singlestoreEnum(["usd"]),
+  currency: singlestoreEnum(["USD"]),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
 });
 
-export const accountId = varchar("account_id", { length: 255 });
+export const accountId = bigint("account_id", { mode: "number" });
 
 export const accountRecordSchema = createSelectSchema(accountsTable);
 export const accountValuesSchema = createInsertSchema(accountsTable);
