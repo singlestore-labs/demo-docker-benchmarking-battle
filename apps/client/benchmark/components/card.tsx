@@ -6,6 +6,7 @@ import { type Dispatch, type ReactNode, type SetStateAction, useState } from "re
 
 import { BenchmarkChart } from "@/benchmark/components/chart";
 import type { BenchmarkData, BenchmarkResult } from "@/benchmark/types";
+import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, type CardProps, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -31,16 +32,19 @@ export function BenchmarkCard({ className, heading, description, actions, ...pro
       label: "SingleStore",
       ms: singleStoreResult.ms,
       xFaster: calcXFaster(singleStoreResult.ms),
+      isPending: singleStoreResult.isPending,
     },
     mysql: {
       label: "MySQL",
       ms: mysqlResult.ms,
       xFaster: calcXFaster(mysqlResult.ms),
+      isPending: mysqlResult.isPending,
     },
     postgres: {
       label: "PostgresSQL",
       ms: postgresResult.ms,
       xFaster: calcXFaster(postgresResult.ms),
+      isPending: postgresResult.isPending,
     },
   } satisfies BenchmarkData;
 
@@ -91,9 +95,16 @@ export function BenchmarkCard({ className, heading, description, actions, ...pro
               key={data.label}
               className="mt-4 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6"
             >
-              <span className="text-muted-foreground text-xs">{data.label}</span>
+              <span className="text-muted-foreground flex items-center gap-1 text-xs">
+                {data.label}
+                {data.isPending && <Spinner />}
+              </span>
               <span
-                className={cn("text-lg leading-none font-bold sm:text-3xl", data.label === "SingleStore" && "text-primary")}
+                className={cn(
+                  "text-lg leading-none font-bold sm:text-3xl",
+                  data.label === "SingleStore" && "text-primary",
+                  data.isPending && "text-foreground/25",
+                )}
               >
                 <span>x{data.xFaster}</span>
                 <span className="ml-2 text-lg">({data.ms ? formatMilliseconds(data.ms) : "0ms"})</span>
