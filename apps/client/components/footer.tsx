@@ -9,9 +9,9 @@ export function Footer({ className, ...props }: FooterProps) {
   return (
     <footer
       {...props}
-      className="border-t"
+      className={cn("border-t", className)}
     >
-      <div className={cn("container mx-auto flex items-center p-4", className)}>
+      <div className="container mx-auto flex items-center p-4">
         <Link
           href="https://github.com/singlestore-labs/benchmarking-battle"
           target="_blank"

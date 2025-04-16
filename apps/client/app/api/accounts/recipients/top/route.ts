@@ -1,26 +1,24 @@
-import * as mysql from "@repo/mysql/user/get-transactions";
-import * as postgres from "@repo/postgres/user/get-transactions";
-import * as singlestore from "@repo/singlestore/user/get-transactions";
+import * as mysql from "@repo/mysql/account/list-top-recipients";
+import * as postgres from "@repo/postgres/account/list-top-recipients";
+import * as singlestore from "@repo/singlestore/account/list-top-recipients";
 import { withMS } from "@repo/utils/with-ms";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const db = request.nextUrl.searchParams.get("db");
-  const userId = request.nextUrl.searchParams.get("userId");
   const limit = request.nextUrl.searchParams.get("limit");
 
   const params = {
-    userId: userId ? +userId : undefined,
     limit: limit ? +limit : undefined,
   };
 
   let query;
   if (db === "singlestore") {
-    query = () => singlestore.listUserTransactions(params);
+    query = () => singlestore.listTopRecipients(params);
   } else if (db === "mysql") {
-    query = () => mysql.listUserTransactions(params);
+    query = () => mysql.listTopRecipients(params);
   } else if (db === "postgres") {
-    query = () => postgres.listUserTransactions(params);
+    query = () => postgres.listTopRecipients(params);
   } else {
     throw new Error("UnknownDatabaseError");
   }

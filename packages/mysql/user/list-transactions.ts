@@ -1,17 +1,17 @@
-import { postgres } from "@repo/postgres";
-import { accountsTable, transactionsTable } from "@repo/postgres/schema";
-import type { UserRecord } from "@repo/postgres/user/types";
+import { mysql } from "@repo/mysql";
+import { accountsTable, transactionsTable } from "@repo/mysql/schema";
+import type { UserRecord } from "@repo/mysql/user/types";
 import { and, desc, eq, getTableColumns, type SQL } from "drizzle-orm";
 
-export type GetUserTransactionsParams = {
+export type ListUserTransactionsParams = {
   userId?: UserRecord["id"];
   limit?: number;
 };
 
-export async function getUserTransactions(params: GetUserTransactionsParams) {
+export async function listUserTransactions(params: ListUserTransactionsParams) {
   const { userId, limit = 10 } = params;
 
-  const query = postgres
+  const query = mysql
     .select(getTableColumns(transactionsTable))
     .from(transactionsTable)
     .leftJoin(accountsTable, eq(accountsTable.id, transactionsTable.accountIdFrom))

@@ -4,9 +4,9 @@ import type { DB } from "@repo/types/db";
 
 import { BenchmarkCard, type BenchmarkCardProps } from "@/benchmark/components/card";
 
-export type GetUserTransactionsBenchmarkProps = Omit<BenchmarkCardProps, "actions">;
+export type ListUserTransactionsBenchmarkProps = Omit<BenchmarkCardProps, "actions">;
 
-export function GetUserTransactionsBenchmark({ ...props }: GetUserTransactionsBenchmarkProps) {
+export function ListUserTransactionsBenchmark({ ...props }: ListUserTransactionsBenchmarkProps) {
   const getParams = (db: DB) => new URLSearchParams({ db, userId: "1", limit: "10" });
 
   return (

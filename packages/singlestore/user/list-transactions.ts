@@ -3,12 +3,12 @@ import { accountsTable, transactionsTable } from "@repo/singlestore/schema";
 import type { UserRecord } from "@repo/singlestore/user/types";
 import { and, desc, eq, getTableColumns, type SQL } from "drizzle-orm";
 
-export type GetUserTransactionsParams = {
+export type ListUserTransactionsParams = {
   userId?: UserRecord["id"];
   limit?: number;
 };
 
-export async function getUserTransactions(params: GetUserTransactionsParams) {
+export async function listUserTransactions(params: ListUserTransactionsParams) {
   const { userId, limit = 10 } = params;
 
   const query = singlestore
