@@ -1,26 +1,22 @@
 "use client";
 
-import type { DB } from "@repo/types/db";
 import { formatMilliseconds } from "format-ms";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 
-import type { BenchmarkResult } from "@/benchmark/types";
+import type { BenchmarkData } from "@/benchmark/types";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
 
-export type BenchmarkChartProps = { className?: string; results: Record<DB, BenchmarkResult[1]> };
+export type BenchmarkChartProps = { className?: string; data: BenchmarkData };
 
 const chartConfig = {
   singlestore: {
-    label: "SingleStore",
     color: "var(--primary)",
   },
   mysql: {
-    label: "MySQL",
     color: "var(--chart-6)",
   },
   postgres: {
-    label: "PostgresSQL",
     color: "var(--chart-6)",
   },
   ms: {
@@ -28,12 +24,12 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function BenchmarkChart({ className, results }: BenchmarkChartProps) {
-  const data = [
-    { db: "singlestore", ms: results.singlestore, fill: "var(--color-singlestore)" },
-    { db: "mysql", ms: results.mysql, fill: "var(--color-mysql)" },
-    { db: "postgres", ms: results.postgres, fill: "var(--color-postgres)" },
-  ].sort((a, b) => a.ms - b.ms);
+export function BenchmarkChart({ className, data }: BenchmarkChartProps) {
+  const _data = [
+    { ...data.singlestore, fill: "var(--color-singlestore)" },
+    { ...data.mysql, fill: "var(--color-mysql)" },
+    { ...data.postgres, fill: "var(--color-postgres)" },
+  ];
 
   return (
     <ChartContainer
@@ -41,41 +37,38 @@ export function BenchmarkChart({ className, results }: BenchmarkChartProps) {
       config={chartConfig}
     >
       <BarChart
-        accessibilityLayer
-        data={data}
+        data={_data}
         layout="vertical"
         margin={{ left: 32 }}
+        accessibilityLayer
       >
         <YAxis
-          dataKey="db"
+          dataKey="label"
           type="category"
           tickLine={false}
           tickMargin={10}
           axisLine={false}
-          tickFormatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label}
         />
         <XAxis
-          dataKey="ms"
+          dataKey="xFaster"
           type="number"
           axisLine={false}
           tickLine={false}
-          tickFormatter={(value) => (value === 0 ? "0" : formatMilliseconds(value, { largestOnly: true }))}
+          tickFormatter={(value) => `x${value}`}
         />
         <ChartTooltip
           cursor={false}
           content={
             <ChartTooltipContent
-              formatter={(value) => {
-                if (typeof value === "number") {
-                  const diff = value / data[0]!.ms;
-                  return `${formatMilliseconds(value)}${diff > 1 ? ` (x${diff.toFixed(1)} slower)` : ""}`;
-                }
+              formatter={(value, name, item, index, payload) => {
+                const { ms, xFaster } = payload as unknown as BenchmarkData[keyof BenchmarkData];
+                return `x${xFaster} (${ms ? formatMilliseconds(ms) : "0ms"})`;
               }}
             />
           }
         />
         <Bar
-          dataKey="ms"
+          dataKey="xFaster"
           layout="vertical"
           radius={5}
         />
