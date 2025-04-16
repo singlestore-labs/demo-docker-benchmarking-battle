@@ -1,16 +1,8 @@
 "use client";
 
 import type { DB } from "@repo/types/db";
-import { withMS } from "@repo/utils/with-ms";
 import { formatMilliseconds } from "format-ms";
-import {
-  type Dispatch,
-  type ReactNode,
-  type SetStateAction,
-  type TransitionStartFunction,
-  useState,
-  useTransition,
-} from "react";
+import { type Dispatch, type ReactNode, type SetStateAction, useState } from "react";
 
 import { BenchmarkChart } from "@/benchmark/components/chart";
 import type { BenchmarkData, BenchmarkResult } from "@/benchmark/types";
@@ -21,22 +13,18 @@ import { cn } from "@/lib/utils";
 export type BenchmarkCardProps = CardProps & {
   heading?: ReactNode;
   description?: ReactNode;
-  actions: Record<DB, () => Promise<any>>;
+  actions: Record<DB, () => Promise<Response>>;
 };
 
 export function BenchmarkCard({ className, heading, description, actions, ...props }: BenchmarkCardProps) {
-  const [singleStoreResult, setSingleStoreResult] = useState<BenchmarkResult>({ value: undefined, ms: 0 });
-  const [mysqlResult, setMysqlResult] = useState<BenchmarkResult>({ value: undefined, ms: 0 });
-  const [postgresResult, setPostgresResult] = useState<BenchmarkResult>({ value: undefined, ms: 0 });
-
-  const singleStoreTransition = useTransition();
-  const mysqlTransition = useTransition();
-  const postgresTransition = useTransition();
+  const [singleStoreResult, setSingleStoreResult] = useState<BenchmarkResult>({ value: undefined, ms: 0, isPending: false });
+  const [mysqlResult, setMysqlResult] = useState<BenchmarkResult>({ value: undefined, ms: 0, isPending: false });
+  const [postgresResult, setPostgresResult] = useState<BenchmarkResult>({ value: undefined, ms: 0, isPending: false });
 
   const times = [singleStoreResult.ms, mysqlResult.ms, postgresResult.ms];
   const slowestTime = Math.max(...times);
   const calcXFaster = (ms: number) => (ms ? +(slowestTime / ms).toFixed(2) : 0);
-  const isPending = singleStoreTransition[0] || mysqlTransition[0] || postgresTransition[0];
+  const isPending = singleStoreResult.isPending || mysqlResult.isPending || postgresResult.isPending;
 
   const data = {
     singlestore: {
@@ -58,46 +46,33 @@ export function BenchmarkCard({ className, heading, description, actions, ...pro
 
   const actionHandlers = {
     singlestore: {
-      startTransition: singleStoreTransition[1],
       setState: setSingleStoreResult,
     },
     mysql: {
-      startTransition: mysqlTransition[1],
       setState: setMysqlResult,
     },
     postgres: {
-      startTransition: postgresTransition[1],
       setState: setPostgresResult,
     },
-  } satisfies Record<
-    DB,
-    {
-      startTransition: TransitionStartFunction;
-      setState: Dispatch<SetStateAction<BenchmarkResult>>;
-    }
-  >;
+  } satisfies Record<DB, { setState: Dispatch<SetStateAction<BenchmarkResult>> }>;
 
   const handleRunClick = () => {
     Object.values(actionHandlers).forEach(({ setState }) => {
-      setState({ value: undefined, ms: 0 });
+      setState({ value: undefined, ms: 0, isPending: false });
     });
 
-    Object.entries(actions).map(([db, action]) => {
+    Object.entries(actions).map(async ([db, action]) => {
       const handler = actionHandlers[db as keyof typeof actionHandlers];
 
-      handler.startTransition(async () => {
-        try {
-          const { value, ms } = await withMS(action);
-
-          if ("error" in value) {
-            console.error(value.error);
-          } else {
-            handler.setState({ value, ms });
-          }
-        } catch (error) {
-          console.error(error);
-        }
-      });
+      try {
+        handler.setState((i) => ({ ...i, isPending: true }));
+        const response = await action();
+        const result = await response.json();
+        handler.setState({ value: result.value, ms: result.ms, isPending: false });
+      } catch (error) {
+        console.error(error);
+        handler.setState((i) => ({ ...i, isPending: false }));
+      }
     });
   };
 
