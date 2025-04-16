@@ -110,6 +110,11 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+:root {
+  --primary: oklch(0.51 0.2631 300.52);
+  --chart-6: oklch(0.91 0 26.47);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

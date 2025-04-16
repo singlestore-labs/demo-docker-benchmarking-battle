@@ -6,7 +6,6 @@
     "lint": "eslint .",
     "check-types": "tsc --noEmit"
   },
-  "dependencies": {},
   "devDependencies": {
     "@repo/eslint-config": "*",
     "@repo/mysql": "*",

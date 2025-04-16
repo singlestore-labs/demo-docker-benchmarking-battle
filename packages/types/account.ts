@@ -1,14 +1,7 @@
-import type * as mysql from "@repo/mysql/account/schema";
-import type * as postgres from "@repo/postgres/account/schema";
-import type * as singlestore from "@repo/singlestore/account/schema";
-import type { z } from "zod";
+import type * as mysql from "@repo/mysql/account/types";
+import type * as postgres from "@repo/postgres/account/types";
+import type * as singlestore from "@repo/singlestore/account/types";
 
-export type AccountRecord =
-  | z.infer<typeof mysql.accountRecordSchema>
-  | z.infer<typeof postgres.accountRecordSchema>
-  | z.infer<typeof singlestore.accountRecordSchema>;
+export type AccountRecord = mysql.AccountRecord | postgres.AccountRecord | singlestore.AccountRecord;
 
-export type AccountValues =
-  | z.infer<typeof mysql.accountValuesSchema>
-  | z.infer<typeof postgres.accountValuesSchema>
-  | z.infer<typeof singlestore.accountValuesSchema>;
+export type AccountValues = mysql.AccountValues | postgres.AccountValues | singlestore.AccountValues;
