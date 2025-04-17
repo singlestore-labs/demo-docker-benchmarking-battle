@@ -1,5 +1,5 @@
 import { mysql } from "@repo/mysql";
-import { transactionsTable } from "@repo/mysql/schema";
+import { transactionsTable, transactionStatusesTable } from "@repo/mysql/schema";
 import { subDays } from "date-fns";
 import { and, eq, gt, sum } from "drizzle-orm";
 
@@ -9,7 +9,8 @@ export async function getTransactionsSum() {
   const result = await mysql
     .select({ sum: sum(transactionsTable.amount) })
     .from(transactionsTable)
-    .where(and(gt(transactionsTable.createdAt, cutoffDate), eq(transactionsTable.status, "success")));
+    .innerJoin(transactionStatusesTable, eq(transactionStatusesTable.id, transactionsTable.statusId))
+    .where(and(gt(transactionsTable.createdAt, cutoffDate), eq(transactionStatusesTable.name, "success")));
 
   return result;
 }
