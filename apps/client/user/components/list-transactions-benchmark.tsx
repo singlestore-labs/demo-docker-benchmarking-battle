@@ -15,9 +15,9 @@ export function ListUserTransactionsBenchmark({ ...props }: ListUserTransactions
       description="Fetches the 10 latest transactions made by a specific user by joining accounts and transactions."
       {...props}
       actions={{
-        singlestore: () => fetch(`/api/user/transactions?${getParams("singlestore")}`),
-        mysql: () => fetch(`/api/user/transactions?${getParams("mysql")}`),
-        postgres: () => fetch(`/api/user/transactions?${getParams("postgres")}`),
+        singlestore: () => fetch(`/api/users/transactions?${getParams("singlestore")}`),
+        mysql: () => fetch(`/api/users/transactions?${getParams("mysql")}`),
+        postgres: () => fetch(`/api/users/transactions?${getParams("postgres")}`),
       }}
     />
   );
