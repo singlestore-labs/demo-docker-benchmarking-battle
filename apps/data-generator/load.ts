@@ -5,7 +5,7 @@ import * as postgresTables from "@repo/postgres/schema";
 import { singlestore } from "@repo/singlestore";
 import * as singlestoreTables from "@repo/singlestore/schema";
 import type { AccountRecord } from "@repo/types/account";
-import type { TransactionRecord } from "@repo/types/transaction";
+import type { TransactionRecord, TransactionStatusRecord, TransactionTypeRecord } from "@repo/types/transaction";
 import type { UserRecord } from "@repo/types/user";
 import { parse } from "csv-parse";
 import { createReadStream } from "fs";
@@ -70,11 +70,10 @@ async function loadAndInsertCSV<T>(
     await loadAndInsertCSV<AccountRecord>(
       "Accounts",
       "accounts.csv",
-      ([id, userId, balance, currency, createdAt, updatedAt]) => ({
+      ([id, userId, balance, createdAt, updatedAt]) => ({
         id: Number(id),
         userId: Number(userId),
         balance: balance as AccountRecord["balance"],
-        currency: currency as AccountRecord["currency"],
         createdAt: createdAt ? new Date(createdAt) : new Date(),
         updatedAt: updatedAt ? new Date(updatedAt) : new Date(),
       }),
@@ -87,17 +86,48 @@ async function loadAndInsertCSV<T>(
       },
     );
 
+    await loadAndInsertCSV<TransactionTypeRecord>(
+      "Transaction Types",
+      "transaction-types.csv",
+      ([id, name]) => ({
+        id: Number(id),
+        name: name || "",
+      }),
+      async (chunk) => {
+        await Promise.all([
+          singlestore.insert(singlestoreTables.transactionTypesTable).values(chunk),
+          mysql.insert(mysqlTables.transactionTypesTable).values(chunk),
+          postgres.insert(postgresTables.transactionTypesTable).values(chunk),
+        ]);
+      },
+    );
+
+    await loadAndInsertCSV<TransactionStatusRecord>(
+      "Transaction Statuses",
+      "transaction-statuses.csv",
+      ([id, name]) => ({
+        id: Number(id),
+        name: name || "",
+      }),
+      async (chunk) => {
+        await Promise.all([
+          singlestore.insert(singlestoreTables.transactionStatusesTable).values(chunk),
+          mysql.insert(mysqlTables.transactionStatusesTable).values(chunk),
+          postgres.insert(postgresTables.transactionStatusesTable).values(chunk),
+        ]);
+      },
+    );
+
     await loadAndInsertCSV<TransactionRecord>(
       "Transactions",
       "transactions.csv",
-      ([id, accountIdFrom, accountIdTo, amount, currency, type, status, createdAt]) => ({
+      ([id, accountIdFrom, accountIdTo, typeId, statusId, amount, createdAt]) => ({
         id: Number(id),
         accountIdFrom: Number(accountIdFrom),
         accountIdTo: Number(accountIdTo),
+        typeId: Number(typeId),
+        statusId: Number(statusId),
         amount: amount || "0",
-        currency: currency as TransactionRecord["currency"],
-        type: type as TransactionRecord["type"],
-        status: status as TransactionRecord["status"],
         createdAt: createdAt ? new Date(createdAt) : new Date(),
       }),
       async (chunk) => {

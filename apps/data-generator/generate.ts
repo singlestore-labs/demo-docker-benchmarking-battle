@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import type { AccountRecord } from "@repo/types/account";
-import type { TransactionRecord } from "@repo/types/transaction";
+import type { TransactionRecord, TransactionStatusRecord, TransactionTypeRecord } from "@repo/types/transaction";
 import type { UserRecord } from "@repo/types/user";
 import { once } from "events";
 import { createWriteStream, existsSync, mkdirSync } from "fs";
@@ -24,6 +24,18 @@ if (!existsSync(EXPORT_PATH)) {
 function printProgress(label: string, count: number) {
   process.stdout.write(`\r${label}: ${count.toLocaleString()} records generated`);
 }
+
+const TRANSACTION_TYPES = [
+  { id: 1, name: "transfer" },
+  { id: 2, name: "withdrawal" },
+  { id: 3, name: "deposit" },
+] satisfies TransactionTypeRecord[];
+
+const TRANSACTION_STATUSES = [
+  { id: 1, name: "success" },
+  { id: 2, name: "failed" },
+  { id: 3, name: "pending" },
+] satisfies TransactionStatusRecord[];
 
 async function generateUsers() {
   console.log("Generating users CSV");
@@ -69,7 +81,6 @@ async function generateAccounts() {
       id: i + 1,
       userId: faker.number.int({ min: 1, max: USERS_NUMBER }),
       balance: faker.finance.amount({ dec: 2 }),
-      currency: "USD",
       createdAt,
       updatedAt: createdAt,
     };
@@ -90,6 +101,42 @@ async function generateAccounts() {
   process.stdout.write("\nAccounts CSV generated\n");
 }
 
+async function generateTransactionTypes() {
+  console.log("Generating transaction types CSV");
+
+  const stream = createWriteStream(resolve(EXPORT_PATH, "transaction-types.csv"));
+
+  for await (const record of TRANSACTION_TYPES) {
+    const line = Object.values(record).join(",") + "\n";
+
+    if (!stream.write(line)) {
+      await once(stream, "drain");
+    }
+  }
+
+  stream.end();
+  await once(stream, "finish");
+  process.stdout.write("\nTransaction types CSV generated\n");
+}
+
+async function generateTransactionStatuses() {
+  console.log("Generating transaction statuses CSV");
+
+  const stream = createWriteStream(resolve(EXPORT_PATH, "transaction-statuses.csv"));
+
+  for await (const record of TRANSACTION_STATUSES) {
+    const line = Object.values(record).join(",") + "\n";
+
+    if (!stream.write(line)) {
+      await once(stream, "drain");
+    }
+  }
+
+  stream.end();
+  await once(stream, "finish");
+  process.stdout.write("\nTransaction statuses CSV generated\n");
+}
+
 async function generateTransactions() {
   console.log("Generating transactions CSV");
 
@@ -108,10 +155,9 @@ async function generateTransactions() {
       id: i + 1,
       accountIdFrom,
       accountIdTo,
+      typeId: faker.helpers.arrayElement(TRANSACTION_TYPES).id,
+      statusId: faker.helpers.arrayElement(TRANSACTION_STATUSES).id,
       amount: faker.finance.amount({ dec: 2 }),
-      currency: "USD",
-      type: faker.helpers.arrayElement(["transfer", "withdrawal", "deposit"]),
-      status: faker.helpers.arrayElement(["success", "failed", "pending"]),
       createdAt,
     };
 
@@ -135,6 +181,8 @@ async function generateTransactions() {
   try {
     await generateUsers();
     await generateAccounts();
+    await generateTransactionTypes();
+    await generateTransactionStatuses();
     await generateTransactions();
     console.log("Done.");
     process.exit(0);

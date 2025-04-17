@@ -1,4 +1,3 @@
-import { currencyEnum } from "@repo/postgres/lib/enum";
 import { userId } from "@repo/postgres/user/schema";
 import { bigint, decimal, index, pgTable, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -9,7 +8,6 @@ export const accountsTable = pgTable(
     id: bigint({ mode: "number" }).primaryKey(),
     userId: userId.notNull(),
     balance: decimal({ precision: 18, scale: 2 }),
-    currency: currencyEnum(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
