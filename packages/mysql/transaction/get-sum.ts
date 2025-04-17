@@ -1,14 +1,15 @@
 import { mysql } from "@repo/mysql";
 import { transactionsTable } from "@repo/mysql/schema";
-import { and, eq, gt, sql } from "drizzle-orm";
+import { subDays } from "date-fns";
+import { and, eq, gt, sum } from "drizzle-orm";
 
 export async function getTransactionsSum() {
+  const cutoffDate = subDays(new Date(), 30);
+
   const result = await mysql
-    .select({
-      total_amount: sql<number>`SUM(${transactionsTable.amount})`,
-    })
+    .select({ sum: sum(transactionsTable.amount) })
     .from(transactionsTable)
-    .where(and(gt(transactionsTable.createdAt, sql`NOW() - INTERVAL 30 DAY`), eq(transactionsTable.status, "success")));
+    .where(and(gt(transactionsTable.createdAt, cutoffDate), eq(transactionsTable.status, "success")));
 
   return result;
 }

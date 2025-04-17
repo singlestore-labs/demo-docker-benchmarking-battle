@@ -4,11 +4,8 @@ import { subDays } from "date-fns";
 import { desc, eq, gte } from "drizzle-orm";
 
 export async function listRecentTransactionsWithInfo() {
-  // Calculate the cutoff date: 7 days before now
   const cutoffDate = subDays(new Date(), 7);
 
-  // Fetch the most recent 100 transactions from the last week,
-  // joining users → accounts → transactions
   const result = await postgres
     .select({
       userId: usersTable.id,
