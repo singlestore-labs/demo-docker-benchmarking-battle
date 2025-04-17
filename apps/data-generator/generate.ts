@@ -25,6 +25,10 @@ function printProgress(label: string, count: number) {
   process.stdout.write(`\r${label}: ${count.toLocaleString()} records generated`);
 }
 
+function toSQLDate(date: Date) {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 const TRANSACTION_TYPES = [
   { id: 1, name: "transfer" },
   { id: 2, name: "withdrawal" },
@@ -53,7 +57,12 @@ async function generateUsers() {
       updatedAt: createdAt,
     };
 
-    const line = Object.values(record).join(",") + "\n";
+    const line =
+      Object.values({
+        ...record,
+        createdAt: toSQLDate(record.createdAt),
+        updatedAt: toSQLDate(record.updatedAt),
+      }).join(",") + "\n";
 
     if (!stream.write(line)) {
       await once(stream, "drain");
@@ -85,7 +94,12 @@ async function generateAccounts() {
       updatedAt: createdAt,
     };
 
-    const line = Object.values(record).join(",") + "\n";
+    const line =
+      Object.values({
+        ...record,
+        createdAt: toSQLDate(record.createdAt),
+        updatedAt: toSQLDate(record.updatedAt),
+      }).join(",") + "\n";
 
     if (!stream.write(line)) {
       await once(stream, "drain");
@@ -161,7 +175,11 @@ async function generateTransactions() {
       createdAt,
     };
 
-    const line = Object.values(record).join(",") + "\n";
+    const line =
+      Object.values({
+        ...record,
+        createdAt: toSQLDate(record.createdAt),
+      }).join(",") + "\n";
 
     if (!stream.write(line)) {
       await once(stream, "drain");

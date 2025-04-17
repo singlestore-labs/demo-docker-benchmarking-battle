@@ -19,7 +19,7 @@ export async function listTopRecipients(params: ListTopRecipientsParams) {
     .innerJoin(transactionStatusesTable, eq(transactionStatusesTable.id, transactionsTable.statusId))
     .where(and(eq(transactionTypesTable.name, "transfer"), eq(transactionStatusesTable.name, "success")))
     .groupBy(transactionsTable.accountIdTo)
-    .orderBy(desc(sql`transferCount`))
+    .orderBy(desc(sql`"transferCount"`))
     .limit(limit);
 
   return result;
