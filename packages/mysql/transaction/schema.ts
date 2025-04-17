@@ -16,6 +16,7 @@ export const transactionsTable = mysqlTable(
   (table) => ({
     fromIdx: index("account_id_from_idx").on(table.accountIdFrom),
     toIdx: index("account_id_to_idx").on(table.accountIdTo),
+    idxTypeStatusAccountIdTo: index("idx_type_status_accountIdTo").on(table.type, table.status, table.accountIdTo),
   }),
 );
 

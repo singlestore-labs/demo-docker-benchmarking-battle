@@ -1,6 +1,6 @@
 import { postgres } from "@repo/postgres";
 import { transactionsTable } from "@repo/postgres/schema";
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 
 export type ListTopRecipientsParams = {
   limit?: number;
@@ -12,12 +12,12 @@ export async function listTopRecipients(params: ListTopRecipientsParams) {
   const result = await postgres
     .select({
       accountIdTo: transactionsTable.accountIdTo,
-      transferCount: count(),
+      transferCount: count(transactionsTable.id).as("transferCount"),
     })
     .from(transactionsTable)
     .where(and(eq(transactionsTable.type, "transfer"), eq(transactionsTable.status, "success")))
     .groupBy(transactionsTable.accountIdTo)
-    .orderBy(desc(count()))
+    .orderBy(desc(sql`transferCount`))
     .limit(limit);
 
   return result;
