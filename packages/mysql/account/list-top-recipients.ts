@@ -1,5 +1,5 @@
 import { mysql } from "@repo/mysql";
-import { transactionsTable } from "@repo/mysql/schema";
+import { transactionsTable, transactionStatusesTable, transactionTypesTable } from "@repo/mysql/schema";
 import { and, count, desc, eq, sql } from "drizzle-orm";
 
 export type ListTopRecipientsParams = {
@@ -15,7 +15,9 @@ export async function listTopRecipients(params: ListTopRecipientsParams) {
       transferCount: count(transactionsTable.id).as("transferCount"),
     })
     .from(transactionsTable)
-    .where(and(eq(transactionsTable.type, "transfer"), eq(transactionsTable.status, "success")))
+    .innerJoin(transactionTypesTable, eq(transactionTypesTable.id, transactionsTable.typeId))
+    .innerJoin(transactionStatusesTable, eq(transactionStatusesTable.id, transactionsTable.statusId))
+    .where(and(eq(transactionTypesTable.name, "transfer"), eq(transactionStatusesTable.name, "success")))
     .groupBy(transactionsTable.accountIdTo)
     .orderBy(desc(sql`transferCount`))
     .limit(limit);

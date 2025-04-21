@@ -1,5 +1,5 @@
 import { singlestore } from "@repo/singlestore";
-import { transactionsTable } from "@repo/singlestore/schema";
+import { transactionsTable, transactionStatusesTable } from "@repo/singlestore/schema";
 import { subDays } from "date-fns";
 import { and, eq, gt, sum } from "drizzle-orm";
 
@@ -9,7 +9,8 @@ export async function getTransactionsSum() {
   const result = await singlestore
     .select({ sum: sum(transactionsTable.amount) })
     .from(transactionsTable)
-    .where(and(gt(transactionsTable.createdAt, cutoffDate), eq(transactionsTable.status, "success")));
+    .innerJoin(transactionStatusesTable, eq(transactionStatusesTable.id, transactionsTable.statusId))
+    .where(and(gt(transactionsTable.createdAt, cutoffDate), eq(transactionStatusesTable.name, "success")));
 
   return result;
 }

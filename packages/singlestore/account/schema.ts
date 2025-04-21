@@ -1,5 +1,5 @@
 import { userId } from "@repo/singlestore/user/schema";
-import { bigint, decimal, index, singlestoreEnum, singlestoreTable, timestamp } from "drizzle-orm/singlestore-core";
+import { bigint, decimal, index, singlestoreTable, timestamp } from "drizzle-orm/singlestore-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const accountsTable = singlestoreTable(
@@ -8,7 +8,6 @@ export const accountsTable = singlestoreTable(
     id: bigint({ mode: "number" }).autoincrement().primaryKey(),
     userId: userId.notNull(),
     balance: decimal({ precision: 18, scale: 2 }),
-    currency: singlestoreEnum(["USD"]),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
   },

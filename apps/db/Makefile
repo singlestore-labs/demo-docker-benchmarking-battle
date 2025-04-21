@@ -6,6 +6,8 @@ up:
 	docker-compose -f $(COMPOSE_FILE) up -d
 down:
 	docker-compose -f $(COMPOSE_FILE) down
+clear:
+	docker-compose -f $(COMPOSE_FILE) down -v
 restart:
 	docker-compose -f $(COMPOSE_FILE) down && docker-compose -f $(COMPOSE_FILE) up -d
 logs:
