@@ -8,7 +8,9 @@ import { DbInfoCard } from "@/db/info/components/card";
 import { GetTransactionsSumBenchmark } from "@/transaction/components/get-sum-benchmark";
 import { ListRecentTransactionsWithInfoBenchmark } from "@/transaction/components/list-recent-with-info-benchmark";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default function Home() { 
   return (
     <>
       <Header />

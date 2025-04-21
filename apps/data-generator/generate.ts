@@ -6,23 +6,23 @@ import { once } from "events";
 import { createWriteStream, existsSync, mkdirSync } from "fs";
 import { resolve } from "path";
 
+const NOW = new Date();
 const USERS_NUMBER = 1_000_000;
 const ACCOUNTS_NUMBER = 10_000_000;
 const TRANSACTIONS_NUMBER = 100_000_000;
-const PROGRESS_INTERVAL = 100_000;
+
 const EXPORT_PATH = "./export";
+const CHUNK_SIZE = 1_000_000;
+const BATCH_SIZE = 10_000;
+const PROGRESS_INTERVAL = BATCH_SIZE;
+const HIGH_WATER_MARK = 16 * 1024 * 1024;
 
 if (!existsSync(EXPORT_PATH)) {
-  try {
-    mkdirSync(EXPORT_PATH);
-  } catch (err) {
-    console.error("Error creating export folder:", err);
-    process.exit(1);
-  }
+  mkdirSync(EXPORT_PATH, { recursive: true });
 }
 
 function printProgress(label: string, count: number) {
-  process.stdout.write(`\r${label}: ${count.toLocaleString()} records generated`);
+  process.stdout.write(`\r${label}: ${count.toLocaleString()} generated`);
 }
 
 function toSQLDate(date: Date) {
@@ -41,168 +41,168 @@ const TRANSACTION_STATUSES = [
   { id: 3, name: "pending" },
 ] satisfies TransactionStatusRecord[];
 
-async function generateUsers() {
-  console.log("Generating users CSV");
+async function generateChunkedCsv<T>(
+  count: number,
+  makeRecord: (i: number) => T,
+  filenamePrefix: string,
+  stringifyRecord: (record: T) => string,
+) {
+  let fileIndex = 1;
+  let recordCountInFile = 0;
+  let totalWritten = 0;
 
-  const stream = createWriteStream(resolve(EXPORT_PATH, "users.csv"));
+  let stream = createWriteStream(resolve(EXPORT_PATH, `${filenamePrefix}-${fileIndex}.csv`), {
+    highWaterMark: HIGH_WATER_MARK,
+  });
 
-  for (let i = 0; i < USERS_NUMBER; i++) {
-    const createdAt = new Date();
+  let batchLines: string[] = [];
 
-    const record: UserRecord = {
-      id: i + 1,
-      email: faker.internet.email(),
-      name: faker.person.fullName(),
-      createdAt,
-      updatedAt: createdAt,
-    };
+  const flushBatch = async () => {
+    if (batchLines.length === 0) return;
+    const chunk = batchLines.join("\n") + "\n";
+    batchLines = [];
 
-    const line =
-      Object.values({
-        ...record,
-        createdAt: toSQLDate(record.createdAt),
-        updatedAt: toSQLDate(record.updatedAt),
-      }).join(",") + "\n";
-
-    if (!stream.write(line)) {
+    if (!stream.write(chunk)) {
       await once(stream, "drain");
     }
+  };
 
-    if ((i + 1) % PROGRESS_INTERVAL === 0 || i + 1 === USERS_NUMBER) {
-      printProgress("Users", i + 1);
+  const closeStream = async () => {
+    await flushBatch();
+    stream.end();
+    await once(stream, "finish");
+    console.log(`\nFinished ${filenamePrefix}-${fileIndex}.csv`);
+  };
+
+  for (let i = 0; i < count; i++) {
+    if (recordCountInFile === CHUNK_SIZE) {
+      await closeStream();
+      fileIndex++;
+      recordCountInFile = 0;
+      stream = createWriteStream(resolve(EXPORT_PATH, `${filenamePrefix}-${fileIndex}.csv`), {
+        highWaterMark: HIGH_WATER_MARK,
+      });
+    }
+
+    const record = makeRecord(i);
+    batchLines.push(stringifyRecord(record));
+    recordCountInFile++;
+    totalWritten++;
+
+    if (batchLines.length === BATCH_SIZE) {
+      await flushBatch();
+    }
+
+    if (totalWritten % PROGRESS_INTERVAL === 0) {
+      printProgress(`${filenamePrefix}-${fileIndex}`, recordCountInFile);
     }
   }
 
-  stream.end();
-  await once(stream, "finish");
-  process.stdout.write("\nUsers CSV generated\n");
+  await closeStream();
+}
+
+async function generateUsers() {
+  await generateChunkedCsv<UserRecord>(
+    USERS_NUMBER,
+    (i) => {
+      return {
+        id: i + 1,
+        email: faker.internet.email(),
+        name: faker.person.fullName(),
+        createdAt: NOW,
+        updatedAt: NOW,
+      };
+    },
+    "users",
+    (record) => {
+      return Object.values({
+        ...record,
+        createdAt: toSQLDate(record.createdAt),
+        updatedAt: toSQLDate(record.updatedAt),
+      }).join(",");
+    },
+  );
 }
 
 async function generateAccounts() {
-  console.log("Generating accounts CSV");
-
-  const stream = createWriteStream(resolve(EXPORT_PATH, "accounts.csv"));
-
-  for (let i = 0; i < ACCOUNTS_NUMBER; i++) {
-    const createdAt = new Date();
-
-    const record: AccountRecord = {
-      id: i + 1,
-      userId: faker.number.int({ min: 1, max: USERS_NUMBER }),
-      balance: faker.finance.amount({ dec: 2 }),
-      createdAt,
-      updatedAt: createdAt,
-    };
-
-    const line =
-      Object.values({
+  await generateChunkedCsv<AccountRecord>(
+    ACCOUNTS_NUMBER,
+    (i) => {
+      return {
+        id: i + 1,
+        userId: faker.number.int({ min: 1, max: USERS_NUMBER }),
+        balance: faker.finance.amount({ dec: 2 }),
+        createdAt: NOW,
+        updatedAt: NOW,
+      };
+    },
+    "accounts",
+    (record) => {
+      return Object.values({
         ...record,
         createdAt: toSQLDate(record.createdAt),
         updatedAt: toSQLDate(record.updatedAt),
-      }).join(",") + "\n";
-
-    if (!stream.write(line)) {
-      await once(stream, "drain");
-    }
-
-    if ((i + 1) % PROGRESS_INTERVAL === 0 || i + 1 === ACCOUNTS_NUMBER) {
-      printProgress("Accounts", i + 1);
-    }
-  }
-
-  stream.end();
-  await once(stream, "finish");
-  process.stdout.write("\nAccounts CSV generated\n");
-}
-
-async function generateTransactionTypes() {
-  console.log("Generating transaction types CSV");
-
-  const stream = createWriteStream(resolve(EXPORT_PATH, "transaction-types.csv"));
-
-  for await (const record of TRANSACTION_TYPES) {
-    const line = Object.values(record).join(",") + "\n";
-
-    if (!stream.write(line)) {
-      await once(stream, "drain");
-    }
-  }
-
-  stream.end();
-  await once(stream, "finish");
-  process.stdout.write("\nTransaction types CSV generated\n");
-}
-
-async function generateTransactionStatuses() {
-  console.log("Generating transaction statuses CSV");
-
-  const stream = createWriteStream(resolve(EXPORT_PATH, "transaction-statuses.csv"));
-
-  for await (const record of TRANSACTION_STATUSES) {
-    const line = Object.values(record).join(",") + "\n";
-
-    if (!stream.write(line)) {
-      await once(stream, "drain");
-    }
-  }
-
-  stream.end();
-  await once(stream, "finish");
-  process.stdout.write("\nTransaction statuses CSV generated\n");
+      }).join(",");
+    },
+  );
 }
 
 async function generateTransactions() {
-  console.log("Generating transactions CSV");
-
-  const stream = createWriteStream(resolve(EXPORT_PATH, "transactions.csv"));
-
-  for (let i = 0; i < TRANSACTIONS_NUMBER; i++) {
-    const createdAt = new Date();
-    const accountIdFrom = faker.number.int({ min: 1, max: ACCOUNTS_NUMBER });
-    let accountIdTo = faker.number.int({ min: 1, max: ACCOUNTS_NUMBER });
-
-    while (accountIdTo === accountIdFrom) {
-      accountIdTo = faker.number.int({ min: 1, max: ACCOUNTS_NUMBER });
-    }
-
-    const record: TransactionRecord = {
-      id: i + 1,
-      accountIdFrom,
-      accountIdTo,
-      typeId: faker.helpers.arrayElement(TRANSACTION_TYPES).id,
-      statusId: faker.helpers.arrayElement(TRANSACTION_STATUSES).id,
-      amount: faker.finance.amount({ dec: 2 }),
-      createdAt,
-    };
-
-    const line =
-      Object.values({
+  await generateChunkedCsv<TransactionRecord>(
+    TRANSACTIONS_NUMBER,
+    (i) => {
+      const from = faker.number.int({ min: 1, max: ACCOUNTS_NUMBER });
+      let to = faker.number.int({ min: 1, max: ACCOUNTS_NUMBER });
+      while (to === from) {
+        to = faker.number.int({ min: 1, max: ACCOUNTS_NUMBER });
+      }
+      return {
+        id: i + 1,
+        accountIdFrom: from,
+        accountIdTo: to,
+        typeId: faker.helpers.arrayElement(TRANSACTION_TYPES).id,
+        statusId: faker.helpers.arrayElement(TRANSACTION_STATUSES).id,
+        amount: faker.finance.amount({ dec: 2 }),
+        createdAt: NOW,
+      };
+    },
+    "transactions",
+    (record) => {
+      return Object.values({
         ...record,
         createdAt: toSQLDate(record.createdAt),
-      }).join(",") + "\n";
+      }).join(",");
+    },
+  );
+}
+
+async function generateReferenceList<T extends { id: number; name: string }>(list: T[], filename: string) {
+  const stream = createWriteStream(resolve(EXPORT_PATH, filename), {
+    highWaterMark: HIGH_WATER_MARK,
+  });
+
+  for (const record of list) {
+    const line = `${record.id},${record.name}\n`;
 
     if (!stream.write(line)) {
       await once(stream, "drain");
-    }
-
-    if ((i + 1) % PROGRESS_INTERVAL === 0 || i + 1 === TRANSACTIONS_NUMBER) {
-      printProgress("Transactions", i + 1);
     }
   }
 
   stream.end();
   await once(stream, "finish");
-  process.stdout.write("\nTransactions CSV generated\n");
+  console.log(`Finished ${filename}`);
 }
 
 (async () => {
   try {
+    console.log("Start generating CSVs…");
     await generateUsers();
     await generateAccounts();
-    await generateTransactionTypes();
-    await generateTransactionStatuses();
+    await generateReferenceList(TRANSACTION_TYPES, "transaction-types-1.csv");
+    await generateReferenceList(TRANSACTION_STATUSES, "transaction-statuses-1.csv");
     await generateTransactions();
-    console.log("Done.");
+    console.log("All CSVs generated.");
     process.exit(0);
   } catch (error) {
     console.error(error);

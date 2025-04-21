@@ -3,60 +3,106 @@ import { postgresPool } from "@repo/postgres";
 import { singlestore } from "@repo/singlestore";
 import type { DB } from "@repo/types/db";
 import { sql } from "drizzle-orm";
-import { createReadStream } from "fs";
+import { createReadStream, existsSync } from "fs";
 import { resolve } from "path";
 import pgCopyStreams from "pg-copy-streams";
 
-const postgresClient = await postgresPool.connect();
+const EXPORT_PATH = "./export";
 
-async function loadCSV(db: DB, tableName: string, path: string) {
-  console.log(`[${db}] Loading CSV from ${path} to ${tableName}`);
+const ENTITIES = [
+  { table: "users", prefix: "users" },
+  { table: "accounts", prefix: "accounts" },
+  { table: "transaction_types", prefix: "transaction-types" },
+  { table: "transaction_statuses", prefix: "transaction-statuses" },
+  { table: "transactions", prefix: "transactions" },
+] as const;
 
-  if (db === "singlestore" || db === "mysql") {
-    const _db = { singlestore, mysql }[db];
+async function loadFileToSQL(driver: typeof singlestore | typeof mysql, tableName: string, path: string) {
+  await driver.execute(
+    sql.raw(`
+      LOAD DATA LOCAL INFILE '${path}'
+      INTO TABLE ${tableName}
+      FIELDS TERMINATED BY ','
+      ENCLOSED BY '"';
+    `),
+  );
+}
 
-    await _db.execute(
-      sql.raw(`
-        SET GLOBAL local_infile=1;
-
-        LOAD DATA LOCAL INFILE '${path}'
-        INTO TABLE ${tableName}
-        FIELDS TERMINATED BY ','
-        ENCLOSED BY '"';
-      `),
-    );
-  }
-
-  if (db === "postgres") {
-    const stream = postgresClient.query(pgCopyStreams.from(`COPY ${tableName} FROM STDIN WITH CSV`));
-    const fileStream = createReadStream(path);
-    await new Promise((resolve, reject) => fileStream.pipe(stream).on("finish", resolve).on("error", reject));
-  }
+async function loadFileToPostgres(client: any, tableName: string, path: string) {
+  const copyStream = client.query(pgCopyStreams.from(`COPY ${tableName} FROM STDIN WITH CSV`));
+  const fileStream = createReadStream(path);
+  return new Promise<void>((resolve, reject) => {
+    fileStream
+      .pipe(copyStream)
+      .on("finish", () => resolve())
+      .on("error", (error: unknown) => reject(error));
+  });
 }
 
 (async () => {
   try {
-    await Promise.all(
-      (["singlestore", "mysql", "postgres"] satisfies DB[]).map(async (db) => {
-        for await (const [tableName, path] of [
-          ["users", resolve("./export/users.csv")],
-          ["accounts", resolve("./export/accounts.csv")],
-          ["transaction_types", resolve("./export/transaction-types.csv")],
-          ["transaction_statuses", resolve("./export/transaction-statuses.csv")],
-          ["transactions", resolve("./export/transactions.csv")],
-        ] as const) {
-          await loadCSV(db, tableName, path);
+    console.log("Start loading CSVs…");
+
+    const tasks = (["singlestore", "mysql"] satisfies DB[]).map(async (db) => {
+      if (db === "singlestore") return;
+      const driver = { singlestore, mysql }[db];
+      await driver.execute(
+        sql.raw(`
+        SET GLOBAL local_infile = 1;
+        SET autocommit = 0;
+        SET unique_checks = 0;
+        SET foreign_key_checks = 0;
+      `),
+      );
+
+      for (const { table, prefix } of ENTITIES) {
+        for (let idx = 1; ; idx++) {
+          const filePath = resolve(EXPORT_PATH, `${prefix}-${idx}.csv`);
+          if (!existsSync(filePath)) break;
+          console.log(`[${db}] Loading ${filePath} → ${table}`);
+          await loadFileToSQL(driver, table, filePath);
+          await driver.execute(sql.raw("COMMIT;"));
         }
-      }),
-    );
+      }
 
-    postgresClient.release();
+      await driver.execute(
+        sql.raw(`
+          SET GLOBAL local_infile = 0;
+          SET autocommit = 1;
+          SET unique_checks = 1;
+          SET foreign_key_checks = 1;
+      `),
+      );
+    });
 
-    console.log("Done.");
+    const pgTask = (async () => {
+      const client = await postgresPool.connect();
+
+      try {
+        await client.query(`SET session_replication_role = 'replica';`);
+
+        for (const { table, prefix } of ENTITIES) {
+          if (table !== "transactions") continue;
+          for (let idx = 1; ; idx++) {
+            const filePath = resolve(EXPORT_PATH, `${prefix}-${idx}.csv`);
+            if (!existsSync(filePath)) break;
+            console.log(`[postgres] Loading ${filePath} → ${table}`);
+            await loadFileToPostgres(client, table, filePath);
+          }
+        }
+
+        await client.query(`SET session_replication_role = 'origin';`);
+      } finally {
+        client.release();
+      }
+    })();
+
+    await Promise.all([...tasks, pgTask]);
+
+    console.log("All CSVs loaded successfully.");
     process.exit(0);
   } catch (error) {
-    postgresClient.release();
-    console.error(error);
+    console.error("Error loading CSVs:", error);
     process.exit(1);
   }
 })();

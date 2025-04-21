@@ -5,7 +5,6 @@ import type { DB } from "@repo/types/db";
 import { type ComponentProps } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { DBInfo } from "@/db/info/types";
 import { cn } from "@/lib/utils";
 
@@ -56,11 +55,7 @@ export async function DbInfoCard({ className, db, ...props }: DbInfoCards) {
                 className="flex items-center gap-2"
               >
                 <span className="min-w-[6rem]">{key}</span>
-                {!value ? (
-                  <Skeleton className="h-5 w-full" />
-                ) : (
-                  <span>{new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value || 0)}</span>
-                )}
+                <span>{new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value || 0)}</span>
               </li>
             ),
           )}
