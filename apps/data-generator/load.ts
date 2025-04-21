@@ -44,7 +44,6 @@ async function loadFileToPostgres(client: any, tableName: string, path: string) 
     console.log("Start loading CSVs…");
 
     const tasks = (["singlestore", "mysql"] satisfies DB[]).map(async (db) => {
-      if (db === "singlestore") return;
       const driver = { singlestore, mysql }[db];
       await driver.execute(
         sql.raw(`
@@ -82,7 +81,6 @@ async function loadFileToPostgres(client: any, tableName: string, path: string) 
         await client.query(`SET session_replication_role = 'replica';`);
 
         for (const { table, prefix } of ENTITIES) {
-          if (table !== "transactions") continue;
           for (let idx = 1; ; idx++) {
             const filePath = resolve(EXPORT_PATH, `${prefix}-${idx}.csv`);
             if (!existsSync(filePath)) break;
