@@ -23,7 +23,7 @@ export function Header({ className, ...props }: HeaderProps) {
 
       <Button asChild>
         <Link
-          href="https://portal.singlestore.com/intention/cloud?utm_source=yaroslav&utm_medium=app&utm_campaign=general-technical&utm_content=benchmarking-battle-head-to-head-performance-of-common-queries-on-mysql-postgres-and-singlestore"
+          href="https://portal.singlestore.com/intention/cloud?utm_source=yaroslav&utm_medium=app&utm_campaign=general-technical&utm_content=docker-benchmarking-battle-head-to-head-performance-of-common-queries-on-mysql-postgres-and-singlestore"
           target="_blank"
         >
           Try SingleStore Free
