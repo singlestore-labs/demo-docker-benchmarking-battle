@@ -5,6 +5,7 @@
   "scripts": {
     "generate:start": "dotenv -- tsx ./generate.ts",
     "load:start": "dotenv -- tsx ./load.ts",
+    "indexes:create": "dotenv -- tsx ./indexes.ts",
     "lint": "eslint .",
     "check-types": "tsc --noEmit"
   },
