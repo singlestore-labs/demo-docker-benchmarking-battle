@@ -41,7 +41,7 @@ export function BenchmarkCard({ className, heading, description, actions, ...pro
       isPending: mysqlResult.isPending,
     },
     postgres: {
-      label: "PostgresSQL",
+      label: "Postgres",
       ms: postgresResult.ms,
       xFaster: calcXFaster(postgresResult.ms),
       isPending: postgresResult.isPending,

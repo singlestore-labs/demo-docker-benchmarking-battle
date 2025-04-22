@@ -18,7 +18,7 @@ const DB_CONFIGS = {
     title: "MySQL",
   },
   postgres: {
-    title: "PostgresSQL",
+    title: "Postgres",
   },
 } satisfies Record<DB, { title: string }>;
 

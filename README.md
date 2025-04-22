@@ -22,3 +22,7 @@
 1. In the `./apps/client` directory, create a `.env` file based on `.env.example`.
 2. Build and start the app by running: `npm run build && npm run start`.
 3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+[Start With SingleStore – $600 in Free Credits](https://portal.singlestore.com/intention/cloud?utm_source=yaroslav&utm_medium=github&utm_campaign=general-technical&utm_content=database-benchmark-mysql-vs-postgresql-vs-singlestore-performance-in-docker-100m-records)
