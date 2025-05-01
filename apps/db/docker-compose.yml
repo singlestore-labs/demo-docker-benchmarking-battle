@@ -2,7 +2,6 @@ services:
   singlestore:
     image: ghcr.io/singlestore-labs/singlestoredb-dev:latest
     platform: linux/amd64
-    container_name: singlestore
     restart: unless-stopped
     ports:
       - "3307:3306"
@@ -13,7 +12,6 @@ services:
 
   mysql:
     image: mysql:latest
-    container_name: mysql
     restart: unless-stopped
     ports:
       - "3306:3306"
@@ -27,7 +25,6 @@ services:
 
   postgres:
     image: postgres:latest
-    container_name: postgres
     restart: unless-stopped
     ports:
       - "5432:5432"
