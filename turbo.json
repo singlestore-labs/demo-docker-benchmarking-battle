@@ -5,7 +5,8 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": ["MYSQL_DB_URL", "POSTGRES_DB_URL", "SINGLESTORE_DB_URL"]
     },
     "lint": {
       "dependsOn": ["^lint"]
