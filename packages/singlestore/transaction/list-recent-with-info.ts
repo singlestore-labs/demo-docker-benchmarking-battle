@@ -20,7 +20,7 @@ export async function listRecentTransactionsWithInfo() {
     .innerJoin(transactionsTable, eq(transactionsTable.accountIdFrom, accountsTable.id))
     .innerJoin(transactionTypesTable, eq(transactionTypesTable.id, transactionsTable.typeId))
     .where(gte(transactionsTable.createdAt, cutoffDate))
-    .orderBy(desc(transactionsTable.createdAt))
+    .orderBy(desc(transactionsTable.createdAt), desc(transactionsTable.id))
     .limit(100);
 
   return result;

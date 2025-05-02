@@ -6,19 +6,14 @@ import { type NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const db = request.nextUrl.searchParams.get("db");
-  const limit = request.nextUrl.searchParams.get("limit");
-
-  const params = {
-    limit: limit ? +limit : undefined,
-  };
 
   let query;
   if (db === "singlestore") {
-    query = () => singlestore.listTopRecipients(params);
+    query = () => singlestore.listTopRecipients();
   } else if (db === "mysql") {
-    query = () => mysql.listTopRecipients(params);
+    query = () => mysql.listTopRecipients();
   } else if (db === "postgres") {
-    query = () => postgres.listTopRecipients(params);
+    query = () => postgres.listTopRecipients();
   } else {
     throw new Error("UnknownDatabaseError");
   }

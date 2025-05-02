@@ -10,7 +10,7 @@ import { ListRecentTransactionsWithInfoBenchmark } from "@/transaction/component
 
 export const dynamic = "force-dynamic";
 
-export default function Home() { 
+export default function Home() {
   return (
     <>
       <Header />

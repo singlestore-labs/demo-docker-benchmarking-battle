@@ -1,26 +1,20 @@
 import { mysql } from "@repo/mysql";
 import { transactionsTable, transactionStatusesTable, transactionTypesTable } from "@repo/mysql/schema";
-import { and, count, desc, eq, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, sql } from "drizzle-orm";
 
-export type ListTopRecipientsParams = {
-  limit?: number;
-};
-
-export async function listTopRecipients(params: ListTopRecipientsParams) {
-  const { limit = 10 } = params;
-
+export async function listTopRecipients() {
   const result = await mysql
     .select({
-      accountIdTo: transactionsTable.accountIdTo,
-      transferCount: count(transactionsTable.id).as("transferCount"),
+      accountId: transactionsTable.accountIdTo,
+      count: count(transactionsTable.id).as("count"),
     })
     .from(transactionsTable)
     .innerJoin(transactionTypesTable, eq(transactionTypesTable.id, transactionsTable.typeId))
     .innerJoin(transactionStatusesTable, eq(transactionStatusesTable.id, transactionsTable.statusId))
     .where(and(eq(transactionTypesTable.name, "transfer"), eq(transactionStatusesTable.name, "success")))
     .groupBy(transactionsTable.accountIdTo)
-    .orderBy(desc(sql`transferCount`))
-    .limit(limit);
+    .orderBy(desc(sql`count`), asc(transactionsTable.accountIdTo))
+    .limit(10);
 
-  return result;
+  return result.at(0);
 }

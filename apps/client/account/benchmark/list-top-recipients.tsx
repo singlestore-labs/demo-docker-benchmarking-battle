@@ -7,7 +7,7 @@ import { BenchmarkCard, type BenchmarkCardProps } from "@/benchmark/components/c
 export type ListTopRecipientsBenchmarkProps = Omit<BenchmarkCardProps, "actions">;
 
 export function ListTopRecipientsBenchmark({ ...props }: ListTopRecipientsBenchmarkProps) {
-  const getParams = (db: DB) => new URLSearchParams({ db, limit: "10" });
+  const getParams = (db: DB) => new URLSearchParams({ db });
 
   return (
     <BenchmarkCard
