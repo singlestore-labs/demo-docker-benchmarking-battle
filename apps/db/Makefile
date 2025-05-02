@@ -11,10 +11,6 @@ down:
 clear:
 	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker-compose -f $(COMPOSE_FILE) down -v
 
-restart:
-	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker-compose -f $(COMPOSE_FILE) down && \
-	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker-compose -f $(COMPOSE_FILE) up -d
-
 logs:
 	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker-compose -f $(COMPOSE_FILE) logs -f
 
