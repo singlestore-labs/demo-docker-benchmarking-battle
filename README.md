@@ -1,4 +1,6 @@
-# Docker Benchmarking Battle
+# Demo: Docker Benchmarking Battle
+
+[Explore the live demo application](https://demo-docker-benchmarking-battle.vercel.app/), powered by three dedicated AWS EC2 `t2.large` instances each running a separate Docker image for SingleStore, MySQL, and PostgreSQL.
 
 ![Preview-1](assets/preview-1.png)
 ![Preview-2](assets/preview-2.png)

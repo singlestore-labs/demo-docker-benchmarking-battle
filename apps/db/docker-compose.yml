@@ -7,6 +7,7 @@ services:
       - "3307:3306"
     environment:
       ROOT_PASSWORD: ${SINGLESTORE_PASSWORD}
+      SINGLESTORE_LICENSE: ${SINGLESTORE_LICENSE}
     volumes:
       - singlestore_data:/var/lib/memsql
 

@@ -13,7 +13,7 @@ export function Footer({ className, ...props }: FooterProps) {
     >
       <div className="container mx-auto flex items-center p-4">
         <Link
-          href="https://github.com/singlestore-labs/docker-benchmarking-battle"
+          href="https://github.com/singlestore-labs/demo-docker-benchmarking-battle"
           target="_blank"
           className="text-muted-foreground hover:text-foreground text-sm hover:underline"
         >
