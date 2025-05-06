@@ -2,9 +2,7 @@
 
 [Explore the live demo application](https://demo-docker-benchmarking-battle.vercel.app/), powered by three dedicated AWS EC2 `t2.large` instances each running a separate Docker image for SingleStore, MySQL, and PostgreSQL.
 
-![Preview-1](assets/preview-1.png)
-![Preview-2](assets/preview-2.png)
-![Preview-3](assets/preview-3.png)
+![App](assets/app.png)
 
 The app demonstrates the performance differences between SingleStore, MySQL, and PostgreSQL on a dataset of over 110 million records. It is a demo application built using the SingleStore Free Dev image, as well as MySQL and PostgreSQL images.
 
