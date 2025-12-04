@@ -14,16 +14,16 @@
     "data:load": "cd ./apps/data-generator && npm run load:start"
   },
   "devDependencies": {
-    "@types/node": "^22.13.10",
-    "prettier": "^3.5.0",
-    "prettier-plugin-tailwindcss": "^0.6.11",
-    "turbo": "^2.4.2",
-    "typescript": "^5.7.3"
+    "@types/node": "^24.10.1",
+    "prettier": "^3.7.4",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "turbo": "^2.6.2",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "npm@10.2.3",
+  "packageManager": "npm@11.6.4",
   "workspaces": [
     "apps/*",
     "packages/*"
